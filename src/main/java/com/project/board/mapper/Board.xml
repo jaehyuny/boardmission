@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ <mapper namespace="com.project.board.service.BoardDao">
+  <resultMap type="com.project.board.entities.Board" id="boardMap">
+  </resultMap>
+  <resultMap type="com.project.board.entities.UploadFileVO" id="uploadMap">
+  </resultMap>
+  <insert id="insertRow" parameterType="hashMap">
+  	insert into board(seq, name, password, title, content, ip, ref, step, hit, level, attach, date, renum, remove
+  	)values((select ifnull(max(seq)+1,1) from board alias_seq), #{name, jdbcType=VARCHAR}, #{password, jdbcType=VARCHAR}, #{title, jdbcType=VARCHAR}, #{content, jdbcType=VARCHAR},
+  	#{ip, jdbcType=VARCHAR}, (select ifnull(max(seq)+1,1) from board alias_ref), 0, 0,
+  	0, #{attach, jdbcType=VARCHAR}, #{date, jdbcType=VARCHAR}, 0, 2)
+  </insert>
+  <insert id="insertReplyRow" parameterType="hashMap">
+  	insert into board(seq, name, password, title, content, ip, ref, step, hit, level, attach, date, renum, remove
+  	)values((select ifnull(max(seq)+1,1) from board alias_seq), #{name, jdbcType=VARCHAR}, #{password, jdbcType=VARCHAR}, #{title, jdbcType=VARCHAR}, #{content, jdbcType=VARCHAR},
+  	#{ip, jdbcType=VARCHAR}, #{ref, jdbcType=INTEGER}, #{step, jdbcType=INTEGER}, 0,
+  	#{level, jdbcType=INTEGER}, #{attach, jdbcType=VARCHAR}, #{date, jdbcType=VARCHAR}, #{renum, jdbcType=INTEGER}, 2)
+  </insert>
+  <insert id="insertReplyBoardRow" parameterType="hashMap">
+  	insert into rep_board(seq, name, password, content, ip, ref, date
+  	)values((select ifnull(max(seq)+1,1) from rep_board alias_seq), #{name, jdbcType=VARCHAR}, #{password, jdbcType=VARCHAR}, #{content, jdbcType=VARCHAR},
+  	#{ip, jdbcType=VARCHAR}, #{ref, jdbcType=INTEGER}, #{date, jdbcType=VARCHAR})
+  </insert>
+  <insert id="uploadFile" parameterType="HashMap">
+  	INSERT INTO
+    uploadFileVO (FILE_NUM, FILE_NAME, FILE_SIZE,
+    ARTICLE_NUM) VALUES ((select ifnull(max(file_num)+1,1) from uploadFileVO alias_file_num), #{file_name}, #{file_size}, #{article_num})
+  </insert>
+  <select id="pageList" parameterType="hashMap" resultMap="boardMap">
+  	set @rownum:=0;
+  	select (case level when 0 then @rownum:=@rownum+1 else 0 end) rownum, b.* from board b where remove > 0 and (title like CONCAT('%', #{find}, '%') OR content like CONCAT('%', #{find}, '%') OR name like CONCAT('%', #{find}, '%')) order by ref desc, step asc, level asc, seq desc, rownum desc limit #{startrow}, #{endrow};
+  </select>
+  <select id="titlepageList" parameterType="hashMap" resultMap="boardMap">
+  	set @rownum:=0;
+  	select (case level when 0 then @rownum:=@rownum+1 else 0 end) rownum, b.* from board b where remove > 0 and title like CONCAT('%', #{find}, '%') order by ref desc, step asc, level asc, seq desc, rownum desc limit #{startrow}, #{endrow};
+  </select>
+  <select id="contentpageList" parameterType="hashMap" resultMap="boardMap">
+  	set @rownum:=0;
+  	select (case level when 0 then @rownum:=@rownum+1 else 0 end) rownum, b.* from board b where remove > 0 and content like CONCAT('%', #{find}, '%') order by ref desc, step asc, level asc, seq desc, rownum desc limit #{startrow}, #{endrow};
+  </select>
+  <select id="namepageList" parameterType="hashMap" resultMap="boardMap">
+  	set @rownum:=0;
+  	select (case level when 0 then @rownum:=@rownum+1 else 0 end) rownum, b.* from board b where remove > 0 and name like CONCAT('%', #{find}, '%') order by ref desc, step asc, level asc, seq desc, rownum desc limit #{startrow}, #{endrow};
+  </select>
+  <select id="rnpageList" parameterType="hashMap" resultMap="boardMap">
+  	set @rownum:=0;
+  	select @rownum:=@rownum+1 rownum, b.* from board b where remove = 2 and (title like CONCAT('%', #{find}, '%') OR content like CONCAT('%', #{find}, '%') OR name like CONCAT('%', #{find}, '%')) order by rownum desc limit #{startrow}, #{endrow};
+  </select>
+  <select id="rntitlepageList" parameterType="hashMap" resultMap="boardMap">
+  	set @rownum:=0;
+  	select @rownum:=@rownum+1 rownum, b.* from board b where remove = 2 and title like CONCAT('%', #{find}, '%') order by rownum desc limit #{startrow}, #{endrow};
+  </select>
+  <select id="rncontentpageList" parameterType="hashMap" resultMap="boardMap">
+  	set @rownum:=0;
+  	select @rownum:=@rownum+1 rownum, b.* from board b where remove = 2 and content like CONCAT('%', #{find}, '%') order by rownum desc limit #{startrow}, #{endrow};
+  </select>
+  <select id="rnnamepageList" parameterType="hashMap" resultMap="boardMap">
+  	set @rownum:=0;
+  	select @rownum:=@rownum+1 rownum, b.* from board b where remove = 2 and name like CONCAT('%', #{find}, '%') order by rownum desc limit #{startrow}, #{endrow};
+  </select>
+  <select id="pageListAll" parameterType="hashMap" resultMap="boardMap">
+  	set @rownum:=0;
+  	select (case level when 0 then @rownum:=@rownum+1 else 0 end) rownum, b.* from board b where remove = 2 and (title like CONCAT('%', #{find}, '%') OR content like CONCAT('%', #{find}, '%') OR name like CONCAT('%', #{find}, '%')) order by ref desc, step asc, level asc, seq desc, rownum desc;
+  </select>
+  <select id="pageListNum" parameterType="hashMap" resultMap="boardMap">
+  	set @rownum:=0;
+  	select @rownum:=@rownum+1 rownum, b.* from board b where remove = 2 and (title like CONCAT('%', #{find}, '%') OR content like CONCAT('%', #{find}, '%') OR name like CONCAT('%', #{find}, '%')) order by rownum desc;
+  </select>
+  <select id="titlepageListAll" parameterType="hashMap" resultMap="boardMap">
+  	set @rownum:=0;
+  	select @rownum:=@rownum+1 rownum, b.* from board b where remove = 2 and title like CONCAT('%', #{find}, '%') order by rownum desc;
+  </select>
+  <select id="contentpageListAll" parameterType="hashMap" resultMap="boardMap">
+  	set @rownum:=0;
+  	select @rownum:=@rownum+1 rownum, b.* from board b where remove = 2 and content like CONCAT('%', #{find}, '%') order by rownum desc;
+  </select>
+  <select id="namepageListAll" parameterType="hashMap" resultMap="boardMap">
+  	set @rownum:=0;
+  	select @rownum:=@rownum+1 rownum, b.* from board b where remove = 2 and name like CONCAT('%', #{find}, '%') order by rownum desc;
+  </select>
+  <select id="replyList" parameterType="int" resultMap="boardMap">
+  	select * from rep_board where ref = #{seq} order by seq desc
+  </select>
+  <select id="selectRowCount" parameterType="String" resultType="int">
+  	select count(*) from board where remove > 0 and (title like CONCAT('%', #{find}, '%') OR content like CONCAT('%', #{find}, '%') OR name like CONCAT('%', #{find}, '%'))
+  </select>
+  <select id="selectRowCountTitle" parameterType="String" resultType="int">
+  	select count(*) from board where remove > 0 and title like CONCAT('%', #{find}, '%')
+  </select>
+  <select id="selectRowCountContent" parameterType="String" resultType="int">
+  	select count(*) from board where remove > 0 and content like CONCAT('%', #{find}, '%')
+  </select>
+  <select id="selectRowCountName" parameterType="String" resultType="int">
+  	select count(*) from board where remove > 0 and name like CONCAT('%', #{find}, '%')
+  </select>
+  <select id="selectOne" parameterType="int" resultMap="boardMap">
+  	select * from board where seq = #{seq}
+  </select>
+  <select id="uploadFileList" parameterType="int" resultMap="uploadMap">
+  	select * from uploadFileVO where article_num = #{seq}
+  </select>
+  <select id="selectStep" parameterType="hashMap" resultType="int">
+  	select ifnull(max(step)+1,1) from board where ref = #{ref} and level = #{level}
+  </select>
+  <select id="selectLevel" parameterType="int" resultType="int">
+  	select ifnull(max(level)+1,1) from board where ref = #{ref}
+  </select>
+  <select id="selectMaxSeq" parameterType="int" resultType="int">
+  	select max(seq) from board
+  </select>
+  <select id="replyConfirm" parameterType="hashMap" resultType="int">
+  	select count(*) from rep_board where seq = #{seq} and password = #{password}
+  </select>
+  <select id="searchRemove" parameterType="int" resultType="int">
+  	select count(*) from board where ref = #{ref} and remove = 2 and renum > 0
+  </select>
+  <select id="searchRemoveReply" parameterType="hashMap" resultType="int">
+  	select count(*) from board where ref = #{ref} and remove = 2 and level = #{level} and renum > #{renum}
+  </select>
+  <update id="updateHit" parameterType="int">
+  	update board set hit = hit +1 where seq = #{seq}
+  </update>
+  <update id="updateRow" parameterType="hashMap">
+  	update board set title=#{title, jdbcType=VARCHAR}, content=#{content, jdbcType=VARCHAR}, attach=#{attach, jdbcType=VARCHAR} where seq = #{seq}
+  </update>
+  <update id="updateDeleteRow" parameterType="int">
+  	update board set ref = ref - 1 where ref > #{ref}
+  </update>
+  <update id="updateReplyStepRow" parameterType="hashMap">
+  	update board set step = step + 1 where ref = #{ref} and step >= #{step}
+  </update>
+  <update id="updateReplyLevelRow" parameterType="hashMap">
+  	update board set level = level + 1 where ref = #{ref} and level > #{level}
+  </update>
+  <update id="updatereplyseq" parameterType="hashMap">
+  	update rep_board set content = #{content} where seq = #{seq}
+  </update>
+  <update id="deleteseq" parameterType="int">
+  	update board set remove = 0 where seq = #{seq}
+  </update>
+  <update id="deleteref" parameterType="int">
+  	update board set remove = 0 where ref = #{ref}
+  </update>
+  <update id="updateremove" parameterType="hashMap">
+  	update board set remove = 1, name = "", title = "", content = "", attach = "" where seq = #{seq}
+  </update>
+  <update id="updatereplyremove" parameterType="hashMap">
+  	update board set remove = 1, name = "", title = "", content = "", attach = "" where ref = #{ref} and level = #{level} and renum = #{renum}-1
+  </update>
+  <delete id="deletereplyseq" parameterType="int">
+  	delete from rep_board where seq = #{seq}
+  </delete>
+  <delete id="deletefile" parameterType="int">
+  	delete from uploadfilevo where file_num = #{filenum}
+  </delete>
+  <select id="selectPageListOracle" resultMap="boardMap">
+         select * from (select rownum numrow,A.*
+         from (select * from board where
+         title like '%'||#{find}||'%' OR
+         content like '%'||#{find}||'%'
+         order by ref desc,step asc) A) 
+         where numrow > #{startrow} and
+         numrow <![CDATA[<= ]]>#{endrow}
+      </select>
+ </mapper>
